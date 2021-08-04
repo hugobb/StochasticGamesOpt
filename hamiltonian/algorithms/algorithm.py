@@ -5,21 +5,31 @@ from collections.abc import Iterable
 import json
 import uuid
 import os
-import time
 
 
 class Algorithm:
-    def __init__(self, game, lr=0.1, momentum=0.0, nesterov=False, alternated=False, device=None, save_dir=None, save_freq=10000, save_trajectory=False):
+    def __init__(
+        self,
+        game,
+        lr=0.1,
+        momentum=0.0,
+        nesterov=False,
+        alternated=False,
+        device=None,
+        save_dir=None,
+        save_freq=10000,
+        save_trajectory=False,
+    ):
         self.game = game
-        
+
         self.lr = lr
         if not isinstance(self.lr, Iterable):
-            self.lr = [self.lr,]*game.num_players
+            self.lr = [self.lr] * game.num_players
         assert len(self.lr) == game.num_players
-        
+
         for i, lr in enumerate(self.lr):
             if not isinstance(lr, LRScheduler):
-                self.lr[i] = BaseLR(lr)   
+                self.lr[i] = BaseLR(lr)
 
         self.momentum = momentum
         self.nesterov = nesterov
@@ -40,7 +50,7 @@ class Algorithm:
 
     def save(self, results, exp_id):
         if self.save_dir is not None:
-            path = os.path.join(self.save_dir, "%s.json"%exp_id)
+            path = os.path.join(self.save_dir, "%s.json" % exp_id)
             with open(path, "w") as f:
                 json.dump(results, f)
 
@@ -52,27 +62,37 @@ class Algorithm:
         results["hamiltonian"].append(self.game.hamiltonian().data.cpu().item())
         results["n_samples"].append(self.n_samples)
         if self.save_trajectory:
-            results["x"].append((self.game.players[0][0].data.detach().clone().item(), self.game.players[1][0].data.detach().clone().item()))
+            results["x"].append(
+                (
+                    self.game.players[0][0].data.detach().clone().item(),
+                    self.game.players[1][0].data.detach().clone().item(),
+                )
+            )
         for i in range(num_iter):
             self.update()
-            
+
             results["dist2opt"].append(self.game.dist2opt().data.cpu().item())
             results["hamiltonian"].append(self.game.hamiltonian().data.cpu().item())
             results["n_samples"].append(self.n_samples)
             if self.save_trajectory:
-                results["x"].append((self.game.players[0][0].data.detach().clone().item(), self.game.players[1][0].data.detach().clone().item()))
+                results["x"].append(
+                    (
+                        self.game.players[0][0].data.detach().clone().item(),
+                        self.game.players[1][0].data.detach().clone().item(),
+                    )
+                )
             self.k += 1
 
-            if i%self.save_freq == 0:
+            if i % self.save_freq == 0:
                 self.save(results, exp_id)
-        
+
         self.save(results, exp_id)
 
         return results
-            
+
     def update(self):
         raise NotImplementedError
-        
+
     def gradient_update(self, p, d_p, momentum=None, nesterov=None):
         momentum = self.momentum if momentum is None else momentum
         nesterov = self.nesterov if nesterov is None else nesterov
@@ -84,5 +104,5 @@ class Algorithm:
                 d_p = d_p.add(self.buf[p], alpha=momentum)
             else:
                 d_p = self.buf[p]
-            
+
         return d_p

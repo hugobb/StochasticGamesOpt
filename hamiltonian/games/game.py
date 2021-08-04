@@ -20,12 +20,14 @@ class Game(nn.Module):
     def loss(self, x=None):
         # Return a list of losses for each players
         raise NotImplementedError()
-        
+
     def grad(self, x=None, players=None, return_loss=False):
         grad_all = []
         loss_all = self.loss(x)
         for loss, player in zip(loss_all, self.get_players()):
-            grad = autograd.grad(loss, player.parameters(), retain_graph=True, create_graph=True)
+            grad = autograd.grad(
+                loss, player.parameters(), retain_graph=True, create_graph=True
+            )
             grad_all.append(grad)
 
         if return_loss:
@@ -40,7 +42,7 @@ class Game(nn.Module):
 
     def reset(self):
         raise NotImplementedError()
-        
+
     def dist2opt(self):
         raise NotImplementedError()
 
@@ -53,7 +55,7 @@ class Game(nn.Module):
         hamiltonian = 0
         for i in range(len(self.players)):
             for g0, g1 in zip(grad_0[i], grad_1[i]):
-                hamiltonian += (g0*g1).sum()
+                hamiltonian += (g0 * g1).sum()
         hamiltonian /= 2
 
         return hamiltonian
@@ -82,7 +84,7 @@ class HamiltonianWrapper(Game):
     def init(self):
         return self.game.init()
 
-    def dist2opt(self): 
+    def dist2opt(self):
         return self.game.dist2opt()
 
     def loss(self, x=None):
@@ -92,11 +94,12 @@ class HamiltonianWrapper(Game):
         else:
             grad_0 = self.game.grad(x[0])
             grad_1 = self.game.grad(x[1])
-            
+
         hamiltonian = 0
         for i in range(len(self.get_players())):
             for g_0, g_1 in zip(grad_0[i], grad_1[i]):
-                hamiltonian += (g_0*g_1).sum()
+                hamiltonian += (g_0 * g_1).sum()
         hamiltonian /= 2
-        
-        return [hamiltonian]*len(self.get_players())
+
+        return [hamiltonian] * len(self.get_players())
+
