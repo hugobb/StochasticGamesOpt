@@ -153,26 +153,20 @@ class QuadraticGame(Game):
         J[:, dim:, :dim] = -self.matrix[2].transpose(-2, -1)
         J[:, dim:, dim:] = self.matrix[1]
 
-        J_ij = torch.zeros(num_samples, num_samples, 2 * dim, 2 * dim)
-        for i in range(num_samples):
-            for j in range(num_samples):
-                J_ij[i, j] = (
-                    torch.mm(J[i].transpose(-1, -2), J[j])
-                    + torch.mm(J[j].transpose(-1, -2), J[i])
-                ) / 2
-        J_ij = J_ij.view(-1, 2 * dim, 2 * dim)
+        eigvals = torch.linalg.eigvals(J.mean(0))
 
-        s = torch.linalg.eigvalsh(J_ij.cpu())
-        s_mean = torch.svd(J.mean(0))[1]
-        e = linalg.eigvals(J)
-        e_mean = linalg.eigvals(J.mean(0))
+        self.L_i = torch.linalg.svdvals(J)[:, 0]
+        self.L_max = self.L_i.max().item()
+        self.L_mean = self.L_i.mean().item()
+        self.L = torch.linalg.svdvals(J.mean(0))[0].item()
+        self.mu_i = torch.linalg.eigvals(J).real.min(dim=-1)[0]
+        self.mu_min = self.mu_i.min().item()
+        self.mu = eigvals.real.min().item()
+        self.imag_min = eigvals.imag.min().item()
+        self.imag_max = eigvals.imag.max().item()
 
-        self.ell_xi = float((1 / ((1 / e).real.min(1))).max())
-        # self.ell_mean = float(1/((1/e_mean).real.min()))
-        self.mu = float(e_mean.real.min())
-        # self.L_H = float(s_mean.max().item())
-        self.cL_H = float(s.max().item())
-        self.mu_H = float(s_mean.min().item()) ** 2
+        mask = self.mu_i >= 0
+        self.mu_mean = (((mask*self.mu_i).sum() + 4*((~mask)*self.mu_i).sum())/len(self.mu_i)).item()
 
         self.init_func = init_func
 

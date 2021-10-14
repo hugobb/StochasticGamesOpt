@@ -5,12 +5,18 @@ class LRScheduler:
     def __init__(self, lr):
         self.lr = lr
 
-    def __call__(self, k):
+    def __call__(self, k, index=None):
         raise NotImplementedError
+
+    def __repr__(self):
+        return "lr=%.1e" % self.lr
+
+    def __str__(self):
+        return "lr=%.1e" % self.lr
 
 
 class BaseLR(LRScheduler):
-    def __call__(self, k):
+    def __call__(self, k, index=None):
         return self.lr
 
 
@@ -19,7 +25,7 @@ class LambdaLR(LRScheduler):
         self.lr = lr
         self.func = func
 
-    def __call__(self, k):
+    def __call__(self, k, index=None):
         return self.func(k)
 
 
@@ -28,7 +34,7 @@ class DecreasingLR(LRScheduler):
         self.lr = lr
         self.threshold = threshold
 
-    def __call__(self, k):
+    def __call__(self, k, index=None):
         if k <= math.ceil(self.threshold):
             return self.lr
         else:

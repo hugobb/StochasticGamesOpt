@@ -26,7 +26,7 @@ class SGD(Algorithm):
                 grad = self.grad()
             for p, g in zip(player.parameters(), grad[i]):
                 d_p = self.gradient_update(p, g)
-                p.data.add_(d_p, alpha=-self.lr[i])
+                p.data.add_(d_p, alpha=-self.lr[i](self.k))
 
 
 class Nesterov(SGD):
@@ -53,42 +53,6 @@ class Nesterov(SGD):
                 self.buf[p] = torch.clone(x).detach()
 
         self.t += 1
-
-
-class Extragradient(SGD):
-    # The recommended learning rate is 1/L
-    def __init__(self, game, lr_e=None, full_batch=False, *args, **kwargs):
-        super().__init__(game, *args, **kwargs)
-        self.buf = {}
-        self.lr_e = lr_e
-        if self.lr_e is None:
-            self.lr_e = self.lr
-
-        if isinstance(self.lr_e, float):
-            self.lr_e = (self.lr_e,) * game.num_players
-        assert len(self.lr_e) == game.num_players
-
-    def update(self):
-        # Extrapolation step
-        if not self.alternated:
-            grad = self.grad()
-        for i, player in enumerate(self.game.get_players()):
-            if self.alternated:
-                grad = self.grad()
-            for p, g in zip(player.parameters(), grad[i]):
-                d_p = self.gradient_update(p, g)
-                self.buf[p] = torch.clone(p).detach()
-                p.data.add_(d_p, alpha=-self.lr_e[i])
-
-        # Update step
-        if not self.alternated:
-            grad = self.grad()
-        for i, player in enumerate(self.game.get_players()):
-            if self.alternated:
-                grad = self.grad()
-            for p, g in zip(player.parameters(), grad[i]):
-                d_p = self.gradient_update(p, g)
-                p.data = self.buf[p] - self.lr[i] * d_p
 
 
 class SVRG(Algorithm):

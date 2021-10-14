@@ -60,8 +60,8 @@ class Game(nn.Module):
 
         return hamiltonian
 
-    def sample(self, return_index=False):
-        return self.sampler.sample(return_index)
+    def sample(self, batch_size=1, return_index=False):
+        return self.sampler.sample(batch_size, return_index)
 
 
 class HamiltonianWrapper(Game):
