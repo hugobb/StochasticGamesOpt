@@ -13,7 +13,8 @@ pip install .
 
 
 ## Notebooks
-To reproduce the results of the paper simply open the notebook `hamiltonian/experiments/experiments_manager.ipynb`.
+To reproduce the results of the paper simply open and run the notebook `hamiltonian/experiments/experiments_manager.ipynb`.
+The plots requires LaTeX to be installed.
 
 ## Structure of the code
 There is two main class `Game` and `Algorithm`.
