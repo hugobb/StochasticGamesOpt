@@ -20,8 +20,7 @@ setuptools.setup(
         "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent",
     ],
-    package_dir={"": "hamiltonian"},
-    packages=setuptools.find_packages(where="hamiltonian"),
+    packages=["hamiltonian", "hamiltonian.algorithms", "hamiltonian.games"],
     python_requires=">=3.6",
     install_requires=[
         'tqdm',
